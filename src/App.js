@@ -1,7 +1,35 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Rectangle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import './App.css';
+
+const tileServers = {
+  osm: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    name: 'OpenStreetMap Standard'
+  },
+  cartoLight: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    name: 'CartoDB Light'
+  },
+  cartoDark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    name: 'CartoDB Dark'
+  },
+  stamenTonerLite: {
+    url: 'https://stamen-tiles.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png',
+    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    name: 'Stamen Toner Lite'
+  },
+  stamenWatercolor: {
+    url: 'https://stamen-tiles.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg',
+    attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    name: 'Stamen Watercolor'
+  }
+};
 
 // Helper function to convert degrees to radians
 function toRadians(deg) {
@@ -55,6 +83,7 @@ function App() {
   const [bounds, setBounds] = useState(null);
   const [format, setFormat] = useState('png');
   const [zoom, setZoom] = useState(15);
+  const [selectedStyle, setSelectedStyle] = useState('osm'); // Default to OpenStreetMap Standard
   const mapRef = useRef();
 
   const handleDownload = async () => {
@@ -149,8 +178,8 @@ function App() {
           whenCreated={mapInstance => { mapRef.current = mapInstance; }}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution={tileServers[selectedStyle].attribution}
+            url={tileServers[selectedStyle].url}
           />
           {bounds && (
             <Rectangle bounds={bounds} pathOptions={{ color: 'red', weight: 1, fillOpacity: 0.1 }} />
@@ -175,6 +204,16 @@ function App() {
             min="1"
             max="19"
           />
+        </div>
+        <div>
+          <label>Map Style:</label>
+          <select value={selectedStyle} onChange={(e) => setSelectedStyle(e.target.value)}>
+            {Object.entries(tileServers).map(([key, value]) => (
+              <option key={key} value={key}>
+                {value.name}
+              </option>
+            ))}
+          </select>
         </div>
         <button onClick={handleDownload}>Download Map</button>
       </div>
