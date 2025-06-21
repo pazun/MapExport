@@ -60,8 +60,19 @@ function tileToLatLon(x, y, zoom) {
 }
 
 // Function to get tile URL
-function getTileUrl(x, y, z) {
-  return `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
+function getTileUrl(x, y, z, styleKey) {
+  const tileServer = tileServers[styleKey];
+  if (!tileServer) {
+    console.error(`Tile server for style key '${styleKey}' not found.`);
+    return '';
+  }
+  // Replace {s} with a common subdomain if needed, or handle it dynamically
+  // For simplicity, we'll assume {s} is not strictly necessary for export or can be ignored.
+  // If {r} is present, replace it with @2x for retina or empty string for standard
+  let url = tileServer.url.replace('{z}', z).replace('{x}', x).replace('{y}', y);
+  url = url.replace('{s}', 'a'); // Use a default subdomain, or implement more robust handling
+  url = url.replace('{r}', ''); // Remove {r} for now, or add logic for retina tiles
+  return url;
 }
 
 // Custom hook to get map instance
@@ -123,7 +134,7 @@ function App() {
         for (let y = minY; y <= maxY; y++) {
           const img = new Image();
           img.crossOrigin = 'Anonymous'; // Required for CORS to prevent canvas tainting
-          img.src = getTileUrl(x, y, zoom);
+          img.src = getTileUrl(x, y, zoom, selectedStyle);
 
           const promise = new Promise((resolve, reject) => {
             img.onload = () => {
